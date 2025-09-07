@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Z2A Academy - Student Portal</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <h1>Student Portal</h1>
+
+  <!-- Search Form -->
+  <form id="searchForm">
+    <input type="text" id="roll" placeholder="Roll Number" required>
+    <input type="text" id="dob" placeholder="DOB (YYYY-MM-DD)" required>
+    <button type="submit">Search</button>
+  </form>
+
+  <!-- Result -->
+  <div id="result" style="margin-top:20px; font-family:Arial; line-height:1.6;"></div>
+
+  <!-- Download PDF -->
+  <button id="downloadBtn" style="display:none; margin-top:10px;">Download PDF</button>
+
+  <script>
+    const apiUrl = "http://localhost:5000/api";
+    let currentStudent = null;
+
+    // SEARCH STUDENT
+    document.getElementById("searchForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const roll = document.getElementById("roll").value.trim();
+      const dob = document.getElementById("dob").value.trim();
+
+      try {
+        const res = await fetch(apiUrl + "/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ roll, dob }),
+        });
+        const data = await res.json();
+
+        if (res.ok && data) {
+          currentStudent = data;
+          displayResult(data);
+        } else {
+          document.getElementById("result").innerHTML = "<p style='color:red;'>No student found.</p>";
+          document.getElementById("downloadBtn").style.display = "none";
+        }
+      } catch (err) {
+        document.getElementById("result").innerHTML = "<p style='color:red;'>Error: " + err.message + "</p>";
+      }
+    });
+
+    // DISPLAY RESULT IN TEXT FORMAT
+    function displayResult(s) {
+      const resultDiv = document.getElementById("result");
+
+      let html = `
+        <h2>Marksheet</h2>
+        <p><strong>Name:</strong> ${s.name}</p>
+        <p><strong>Roll:</strong> ${s.roll}</p>
+        <p><strong>DOB:</strong> ${s.dob.split("T")[0]}</p>
+        <p><strong>Grade:</strong> ${s.grade}</p>
+        <p><strong>Subjects & Marks:</strong></p>
+        <ul>
+      `;
+
+      if (s.subjects && s.marks) {
+        for (let i = 0; i < s.subjects.length; i++) {
+          const subj = s.subjects[i] || "-";
+          const mark = s.marks[i] !== undefined ? s.marks[i] : "-";
+          const res = (s.subjectResults && s.subjectResults[i]) ? s.subjectResults[i] : "-";
+          html += `<li>${subj}: ${mark} (${res})</li>`;
+        }
+      }
+
+      html += `
+        </ul>
+        <p><strong>Total:</strong> ${s.total}</p>
+        <p><strong>Overall Result:</strong> ${s.passFail}</p>
+      `;
+
+      resultDiv.innerHTML = html;
+      document.getElementById("downloadBtn").style.display = "inline-block";
+    }
+
+    // DOWNLOAD PDF
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+      if (!currentStudent) return;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(16);
+      doc.text("Z2A Academy - Marksheet", 20, 20);
+
+      doc.setFontSize(12);
+      doc.text(`Name: ${currentStudent.name}`, 20, 40);
+      doc.text(`Roll: ${currentStudent.roll}`, 20, 50);
+      doc.text(`DOB: ${currentStudent.dob.split("T")[0]}`, 20, 60);
+      doc.text(`Grade: ${currentStudent.grade}`, 20, 70);
+
+      doc.text("Subjects & Marks:", 20, 90);
+      let y = 100;
+      for (let i = 0; i < currentStudent.subjects.length; i++) {
+        const subj = currentStudent.subjects[i] || "-";
+        const mark = currentStudent.marks[i] !== undefined ? currentStudent.marks[i] : "-";
+        const res = (currentStudent.subjectResults && currentStudent.subjectResults[i]) ? currentStudent.subjectResults[i] : "-";
+        doc.text(`${subj}: ${mark} (${res})`, 30, y);
+        y += 10;
+      }
+
+      doc.text(`Total: ${currentStudent.total}`, 20, y + 10);
+      doc.text(`Overall Result: ${currentStudent.passFail}`, 20, y + 20);
+
+      doc.save(`${currentStudent.roll}_marksheet.pdf`);
+    });
+  </script>
+</body>
+</html>
