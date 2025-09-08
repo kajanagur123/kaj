@@ -1,5 +1,9 @@
 // =================== CONFIG ===================
-const apiUrl = '/api'; // Works locally & on Render
+// Detect if running locally or in production
+const apiUrl = window.location.hostname === "localhost"
+  ? "http://localhost:5000/api"  // local backend
+  : "https://your-backend-name.onrender.com/api"; // Render backend URL
+
 let token = '';
 let currentStudent = null; // For student marksheet display
 
@@ -212,4 +216,3 @@ document.getElementById('downloadBtn')?.addEventListener('click', () => {
   doc.text(`Overall Result: ${currentStudent.passFail}`, 20, y + 20);
   doc.save(`${currentStudent.roll}_marksheet.pdf`);
 });
-
