@@ -10,7 +10,7 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors()); // allow all origins (you can restrict later)
+app.use(cors()); // allow all origins (safe for testing; restrict in prod)
 app.use(express.json());
 
 // =================== ROUTES ===================
@@ -19,32 +19,37 @@ app.use("/api", studentRoutes);
 
 // =================== SERVE FRONTEND ===================
 // Serve static files from frontend folder
-app.use(express.static(path.join(__dirname, "frontend")));
+const frontendPath = path.join(__dirname, "frontend");
+app.use(express.static(frontendPath));
 
-// Default route → serve index.html (Student Portal or Landing Page)
+// Default route → serve index.html (Student Portal / Landing Page)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "index.html"));
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
 // Admin portal
 app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "admin.html"));
+  res.sendFile(path.join(frontendPath, "admin.html"));
+});
+
+// Health check (useful for Render / debugging)
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", message: "✅ Z2A Academy server running" });
 });
 
 // =================== DATABASE & SERVER ===================
 const PORT = process.env.PORT || 5000;
+const HOST = "0.0.0.0"; // ensures works on Render & other devices
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => {
-  console.log("✅ MongoDB connected");
-
-  // Start server
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-  });
-})
-.catch(err => console.error("❌ MongoDB connection error:", err));
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("✅ MongoDB connected");
+    app.listen(PORT, HOST, () =>
+      console.log(`🚀 Server running at http://localhost:${PORT}`)
+    );
+  })
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
