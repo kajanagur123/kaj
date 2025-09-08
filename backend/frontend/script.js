@@ -1,8 +1,6 @@
-/// =================== CONFIG ===================
-// Dynamically determine API base URL
-const apiUrl = window.location.hostname === "localhost"
-  ? "http://localhost:5000/api"
-  : "https://z2a.onrender.com/api";
+// =================== CONFIG ===================
+// Always use Render API base URL
+const apiUrl = "https://z2a.onrender.com/api";
 
 let token = '';
 let currentStudent = null; // For student marksheet display
@@ -131,8 +129,7 @@ async function editStudent(id) {
     document.getElementById('grade').value = s.grade;
     document.getElementById('subjects').value = s.subjects.join(', ');
     document.getElementById('marks').value = s.marks.join(', ');
-    document.getElementById('subjectResults').value = s.subjectResults?.join(', ')
-      || '';
+    document.getElementById('subjectResults').value = s.subjectResults?.join(', ') || '';
     document.getElementById('total').value = s.total;
     document.getElementById('passFail').value = s.passFail;
   } catch (err) {
