@@ -1,4 +1,4 @@
-//const apiUrl = 'http://localhost:5000/api';
+const apiUrl = 'https://kaj-2.onrender.com/api'; // live Render backend
 let token = '';
 
 // Admin login
