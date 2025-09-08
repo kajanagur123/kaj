@@ -1,12 +1,5 @@
 // =================== CONFIG ===================
-// Always use Render API base URL
-// ❌ Wrong (local only)
-// const API_URL = "http://localhost:5000";
-
-// ✅ Correct (Render deployment)
-// =================== CONFIG ===================
-const apiUrl = "https://z2a.onrender.com/api";
-
+const API_URL = "https://z2a.onrender.com/api";
 
 let token = '';
 let currentStudent = null; // For student marksheet display
@@ -23,6 +16,8 @@ document.getElementById('loginForm')?.addEventListener('submit', async e => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
+
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
     const data = await res.json();
     if (data.token) {
@@ -68,7 +63,7 @@ document.getElementById('studentForm')?.addEventListener('submit', async e => {
   const method = studentId ? 'PUT' : 'POST';
 
   try {
-    await fetch(url, {
+    const res = await fetch(url, {
       method,
       headers: {
         'Content-Type': 'application/json',
@@ -76,6 +71,8 @@ document.getElementById('studentForm')?.addEventListener('submit', async e => {
       },
       body: JSON.stringify(student)
     });
+
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
     document.getElementById('studentForm').reset();
     if (document.getElementById('studentId'))
@@ -93,6 +90,9 @@ async function loadStudents() {
     const res = await fetch(`${API_URL}/students`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
+
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
     const students = await res.json();
     const tbody = document.querySelector('#studentTable tbody');
     tbody.innerHTML = '';
@@ -117,6 +117,7 @@ async function loadStudents() {
     });
   } catch (err) {
     console.error('Load students error:', err);
+    alert('Error loading students from server.');
   }
 }
 
@@ -126,8 +127,10 @@ async function editStudent(id) {
     const res = await fetch(`${API_URL}/students/${id}`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    const s = await res.json();
 
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+    const s = await res.json();
     document.getElementById('studentId').value = s._id;
     document.getElementById('name').value = s.name;
     document.getElementById('roll').value = s.roll;
@@ -135,24 +138,29 @@ async function editStudent(id) {
     document.getElementById('grade').value = s.grade;
     document.getElementById('subjects').value = s.subjects.join(', ');
     document.getElementById('marks').value = s.marks.join(', ');
-    document.getElementById('subjectResults').value = s.subjectResults?.join(', '') || '';
+    document.getElementById('subjectResults').value = s.subjectResults?.join(', ') || '';
     document.getElementById('total').value = s.total;
     document.getElementById('passFail').value = s.passFail;
   } catch (err) {
     console.error('Edit student error:', err);
+    alert('Error fetching student data.');
   }
 }
 
 async function deleteStudent(id) {
   if (!confirm('Are you sure you want to delete this student?')) return;
   try {
-    await fetch(`${API_URL}/students/${id}`, {
+    const res = await fetch(`${API_URL}/students/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': 'Bearer ' + token }
     });
+
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
     loadStudents();
   } catch (err) {
     console.error('Delete student error:', err);
+    alert('Error deleting student.');
   }
 }
 
@@ -169,6 +177,8 @@ document.getElementById('searchForm')?.addEventListener('submit', async e => {
       body: JSON.stringify({ roll, dob })
     });
 
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
     const student = await res.json();
 
     if (student.name) {
@@ -182,6 +192,7 @@ document.getElementById('searchForm')?.addEventListener('submit', async e => {
     }
   } catch (err) {
     console.error('Search error:', err);
+    alert('Error searching for student.');
   }
 });
 
