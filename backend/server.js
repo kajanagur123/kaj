@@ -8,6 +8,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Root route for Render
+app.get("/", (req, res) => {
+  res.send("Z2A Academy backend is running!");
+});
+
+// API routes
 const studentRoutes = require("./routes/studentRoutes");
 app.use("/api", studentRoutes);
 
