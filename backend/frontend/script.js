@@ -1,5 +1,5 @@
-// 🔗 Backend API (Render)
 const apiUrl = 'https://z2a-academy.onrender.com/api';
+
 let token = '';
 
 // ===============================
