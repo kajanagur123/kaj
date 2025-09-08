@@ -1,5 +1,5 @@
 // =================== CONFIG ===================
-const apiUrl = '/api'; // Use relative URL for Render deployment
+const apiUrl = '/api'; // Works locally & on Render
 let token = '';
 let currentStudent = null; // For student marksheet display
 
@@ -9,20 +9,25 @@ document.getElementById('loginForm')?.addEventListener('submit', async e => {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
 
-  const res = await fetch(`${apiUrl}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  });
+  try {
+    const res = await fetch(`${apiUrl}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
 
-  const data = await res.json();
-  if (data.token) {
-    token = data.token;
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('adminDashboard').style.display = 'block';
-    loadStudents();
-  } else {
-    alert('Login failed');
+    const data = await res.json();
+    if (data.token) {
+      token = data.token;
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('adminDashboard').style.display = 'block';
+      loadStudents();
+    } else {
+      alert('Login failed');
+    }
+  } catch (err) {
+    console.error('Login error:', err);
+    alert('Server error, please try again later.');
   }
 });
 
@@ -54,65 +59,82 @@ document.getElementById('studentForm')?.addEventListener('submit', async e => {
   const url = studentId ? `${apiUrl}/students/${studentId}` : `${apiUrl}/students`;
   const method = studentId ? 'PUT' : 'POST';
 
-  await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-    body: JSON.stringify(student)
-  });
+  try {
+    await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(student)
+    });
 
-  document.getElementById('studentForm').reset();
-  if(document.getElementById('studentId')) document.getElementById('studentId').value = '';
-  loadStudents();
+    document.getElementById('studentForm').reset();
+    if (document.getElementById('studentId')) document.getElementById('studentId').value = '';
+    loadStudents();
+  } catch (err) {
+    console.error('Save student error:', err);
+    alert('Error saving student');
+  }
 });
 
 // =================== LOAD STUDENTS TABLE ===================
 async function loadStudents() {
-  const res = await fetch(`${apiUrl}/students`, { headers: { 'Authorization': 'Bearer ' + token } });
-  const students = await res.json();
-  const tbody = document.querySelector('#studentTable tbody');
-  tbody.innerHTML = '';
+  try {
+    const res = await fetch(`${apiUrl}/students`, { headers: { 'Authorization': 'Bearer ' + token } });
+    const students = await res.json();
+    const tbody = document.querySelector('#studentTable tbody');
+    tbody.innerHTML = '';
 
-  students.forEach(s => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${s.name}</td>
-      <td>${s.roll}</td>
-      <td>${s.grade}</td>
-      <td>${s.subjects.join(', ')}</td>
-      <td>${s.marks.join(', ')}</td>
-      <td>${s.subjectResults?.join(', ') || '-'}</td>
-      <td>${s.total}</td>
-      <td>${s.passFail}</td>
-      <td>
-        <button onclick="editStudent('${s._id}')">Edit</button>
-        <button onclick="deleteStudent('${s._id}')">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+    students.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${s.name}</td>
+        <td>${s.roll}</td>
+        <td>${s.grade}</td>
+        <td>${s.subjects.join(', ')}</td>
+        <td>${s.marks.join(', ')}</td>
+        <td>${s.subjectResults?.join(', ') || '-'}</td>
+        <td>${s.total}</td>
+        <td>${s.passFail}</td>
+        <td>
+          <button onclick="editStudent('${s._id}')">Edit</button>
+          <button onclick="deleteStudent('${s._id}')">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('Load students error:', err);
+  }
 }
 
 // =================== EDIT / DELETE STUDENT ===================
 async function editStudent(id) {
-  const res = await fetch(`${apiUrl}/students/${id}`, { headers: { 'Authorization': 'Bearer ' + token } });
-  const s = await res.json();
+  try {
+    const res = await fetch(`${apiUrl}/students/${id}`, { headers: { 'Authorization': 'Bearer ' + token } });
+    const s = await res.json();
 
-  document.getElementById('studentId').value = s._id;
-  document.getElementById('name').value = s.name;
-  document.getElementById('roll').value = s.roll;
-  document.getElementById('dob').value = s.dob.split('T')[0];
-  document.getElementById('grade').value = s.grade;
-  document.getElementById('subjects').value = s.subjects.join(', ');
-  document.getElementById('marks').value = s.marks.join(', ');
-  document.getElementById('subjectResults').value = s.subjectResults?.join(', ') || '';
-  document.getElementById('total').value = s.total;
-  document.getElementById('passFail').value = s.passFail;
+    document.getElementById('studentId').value = s._id;
+    document.getElementById('name').value = s.name;
+    document.getElementById('roll').value = s.roll;
+    document.getElementById('dob').value = s.dob.split('T')[0];
+    document.getElementById('grade').value = s.grade;
+    document.getElementById('subjects').value = s.subjects.join(', ');
+    document.getElementById('marks').value = s.marks.join(', ');
+    document.getElementById('subjectResults').value = s.subjectResults?.join(', ') || '';
+    document.getElementById('total').value = s.total;
+    document.getElementById('passFail').value = s.passFail;
+  } catch (err) {
+    console.error('Edit student error:', err);
+  }
 }
 
 async function deleteStudent(id) {
   if (!confirm('Are you sure you want to delete this student?')) return;
-  await fetch(`${apiUrl}/students/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
-  loadStudents();
+  try {
+    await fetch(`${apiUrl}/students/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+    loadStudents();
+  } catch (err) {
+    console.error('Delete student error:', err);
+  }
 }
 
 // =================== STUDENT PORTAL SEARCH ===================
@@ -121,21 +143,25 @@ document.getElementById('searchForm')?.addEventListener('submit', async e => {
   const roll = document.getElementById('roll').value;
   const dob = document.getElementById('dob').value;
 
-  const res = await fetch(`${apiUrl}/search`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ roll, dob })
-  });
+  try {
+    const res = await fetch(`${apiUrl}/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roll, dob })
+    });
 
-  const student = await res.json();
+    const student = await res.json();
 
-  if (student.name) {
-    currentStudent = student;
-    displayResult(student);
-    document.getElementById('downloadBtn').style.display = 'inline-block';
-  } else {
-    document.getElementById('result').innerHTML = '<p style="color:red;">Student not found.</p>';
-    document.getElementById('downloadBtn').style.display = 'none';
+    if (student.name) {
+      currentStudent = student;
+      displayResult(student);
+      document.getElementById('downloadBtn').style.display = 'inline-block';
+    } else {
+      document.getElementById('result').innerHTML = '<p style="color:red;">Student not found.</p>';
+      document.getElementById('downloadBtn').style.display = 'none';
+    }
+  } catch (err) {
+    console.error('Search error:', err);
   }
 });
 
@@ -186,3 +212,4 @@ document.getElementById('downloadBtn')?.addEventListener('click', () => {
   doc.text(`Overall Result: ${currentStudent.passFail}`, 20, y + 20);
   doc.save(`${currentStudent.roll}_marksheet.pdf`);
 });
+
