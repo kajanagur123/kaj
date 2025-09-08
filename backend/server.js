@@ -10,7 +10,7 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors()); // Allow all origins (safe for dev; restrict in prod if needed)
+app.use(cors()); // allow all origins
 app.use(express.json());
 
 // =================== ROUTES ===================
@@ -31,14 +31,14 @@ app.get("/admin", (req, res) => {
   res.sendFile(path.join(frontendPath, "admin.html"));
 });
 
-// Health check (for Render/debugging)
+// Health check (for Render)
 app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "✅ Z2A Academy server running" });
 });
 
 // =================== DATABASE & SERVER ===================
-const PORT = process.env.PORT || 5000;
-const HOST = "0.0.0.0"; // Required for Render & external devices
+const PORT = process.env.PORT; // Render provides this automatically
+const HOST = "0.0.0.0";       // Required on Render
 
 mongoose
   .connect(process.env.MONGO_URI, {
@@ -48,7 +48,7 @@ mongoose
   .then(() => {
     console.log("✅ MongoDB connected");
     app.listen(PORT, HOST, () => {
-      console.log(`🚀 Server running at http://localhost:${PORT}`);
+      console.log(`🚀 Server running on Render at port ${PORT}`);
     });
   })
   .catch((err) => console.error("❌ MongoDB connection error:", err));
