@@ -10,7 +10,7 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors()); // allow all origins (safe for testing; restrict in prod)
+app.use(cors()); // Allow all origins (safe for dev; restrict in prod if needed)
 app.use(express.json());
 
 // =================== ROUTES ===================
@@ -18,11 +18,10 @@ const studentRoutes = require("./routes/studentRoutes");
 app.use("/api", studentRoutes);
 
 // =================== SERVE FRONTEND ===================
-// Serve static files from frontend folder
 const frontendPath = path.join(__dirname, "frontend");
 app.use(express.static(frontendPath));
 
-// Default route → serve index.html (Student Portal / Landing Page)
+// Student portal (default)
 app.get("/", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
@@ -32,14 +31,14 @@ app.get("/admin", (req, res) => {
   res.sendFile(path.join(frontendPath, "admin.html"));
 });
 
-// Health check (useful for Render / debugging)
+// Health check (for Render/debugging)
 app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "✅ Z2A Academy server running" });
 });
 
 // =================== DATABASE & SERVER ===================
 const PORT = process.env.PORT || 5000;
-const HOST = "0.0.0.0"; // ensures works on Render & other devices
+const HOST = "0.0.0.0"; // Required for Render & external devices
 
 mongoose
   .connect(process.env.MONGO_URI, {
@@ -48,8 +47,8 @@ mongoose
   })
   .then(() => {
     console.log("✅ MongoDB connected");
-    app.listen(PORT, HOST, () =>
-      console.log(`🚀 Server running at http://localhost:${PORT}`)
-    );
+    app.listen(PORT, HOST, () => {
+      console.log(`🚀 Server running at http://localhost:${PORT}`);
+    });
   })
   .catch((err) => console.error("❌ MongoDB connection error:", err));
