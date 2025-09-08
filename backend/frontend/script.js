@@ -1,6 +1,11 @@
 // =================== CONFIG ===================
 // Always use Render API base URL
-const apiUrl = "https://z2a.onrender.com/api";
+// ❌ Wrong (local only)
+// const API_URL = "http://localhost:5000";
+
+// ✅ Correct (Render deployment)
+// =================== CONFIG ===================
+const API_URL = "https://z2a.onrender.com";
 
 let token = '';
 let currentStudent = null; // For student marksheet display
@@ -12,7 +17,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async e => {
   const password = document.getElementById('password').value;
 
   try {
-    const res = await fetch(`${apiUrl}/login`, {
+    const res = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
@@ -57,8 +62,8 @@ document.getElementById('studentForm')?.addEventListener('submit', async e => {
   };
 
   const url = studentId
-    ? `${apiUrl}/students/${studentId}`
-    : `${apiUrl}/students`;
+    ? `${API_URL}/students/${studentId}`
+    : `${API_URL}/students`;
   const method = studentId ? 'PUT' : 'POST';
 
   try {
@@ -84,7 +89,7 @@ document.getElementById('studentForm')?.addEventListener('submit', async e => {
 // =================== LOAD STUDENTS TABLE ===================
 async function loadStudents() {
   try {
-    const res = await fetch(`${apiUrl}/students`, {
+    const res = await fetch(`${API_URL}/students`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     const students = await res.json();
@@ -117,7 +122,7 @@ async function loadStudents() {
 // =================== EDIT / DELETE STUDENT ===================
 async function editStudent(id) {
   try {
-    const res = await fetch(`${apiUrl}/students/${id}`, {
+    const res = await fetch(`${API_URL}/students/${id}`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     const s = await res.json();
@@ -129,7 +134,7 @@ async function editStudent(id) {
     document.getElementById('grade').value = s.grade;
     document.getElementById('subjects').value = s.subjects.join(', ');
     document.getElementById('marks').value = s.marks.join(', ');
-    document.getElementById('subjectResults').value = s.subjectResults?.join(', ') || '';
+    document.getElementById('subjectResults').value = s.subjectResults?.join(', '') || '';
     document.getElementById('total').value = s.total;
     document.getElementById('passFail').value = s.passFail;
   } catch (err) {
@@ -140,7 +145,7 @@ async function editStudent(id) {
 async function deleteStudent(id) {
   if (!confirm('Are you sure you want to delete this student?')) return;
   try {
-    await fetch(`${apiUrl}/students/${id}`, {
+    await fetch(`${API_URL}/students/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -157,7 +162,7 @@ document.getElementById('searchForm')?.addEventListener('submit', async e => {
   const dob = document.getElementById('dob').value;
 
   try {
-    const res = await fetch(`${apiUrl}/search`, {
+    const res = await fetch(`${API_URL}/search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ roll, dob })
@@ -222,8 +227,7 @@ document.getElementById('downloadBtn')?.addEventListener('click', () => {
 
   let y = 90;
   currentStudent.subjects.forEach((subj, i) => {
-    const mark = currentStudent.marks[i] !== undefined
-      ? currentStudent.marks[i] : '-';
+    const mark = currentStudent.marks[i] !== undefined ? currentStudent.marks[i] : '-';
     const res = currentStudent.subjectResults?.[i] || '-';
     doc.text(`${subj}: ${mark} (${res})`, 30, y);
     y += 10;
