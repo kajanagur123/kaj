@@ -5,7 +5,8 @@
 
 // ✅ Correct (Render deployment)
 // =================== CONFIG ===================
-const API_URL = "https://z2a.onrender.com";
+const apiUrl = "https://z2a.onrender.com/api";
+
 
 let token = '';
 let currentStudent = null; // For student marksheet display
