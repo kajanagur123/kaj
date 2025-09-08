@@ -1,4 +1,5 @@
-const apiUrl = 'https://kaj-2.onrender.com/api'; // live Render backend
+// Point frontend to your live backend on Render
+const apiUrl = 'https://z2a-academy.onrender.com/api';
 let token = '';
 
 // Admin login
@@ -17,7 +18,9 @@ document.getElementById('loginForm')?.addEventListener('submit', async e => {
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('adminDashboard').style.display = 'block';
     loadStudents();
-  } else alert('Login failed');
+  } else {
+    alert('Login failed');
+  }
 });
 
 // Add student
@@ -35,7 +38,10 @@ document.getElementById('studentForm')?.addEventListener('submit', async e => {
   };
   await fetch(apiUrl + '/students', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    },
     body: JSON.stringify(student)
   });
   loadStudents();
@@ -43,14 +49,22 @@ document.getElementById('studentForm')?.addEventListener('submit', async e => {
 
 // Load students
 async function loadStudents() {
-  const res = await fetch(apiUrl + '/students', { headers: { 'Authorization': 'Bearer ' + token } });
+  const res = await fetch(apiUrl + '/students', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  });
   const students = await res.json();
   const tbody = document.querySelector('#studentTable tbody');
   tbody.innerHTML = '';
   students.forEach(s => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${s.name}</td><td>${s.roll}</td><td>${s.grade}</td><td>${s.total}</td><td>${s.passFail}</td>
-      <td><button onclick="deleteStudent('${s._id}')">Delete</button></td>`;
+    tr.innerHTML = `
+      <td>${s.name}</td>
+      <td>${s.roll}</td>
+      <td>${s.grade}</td>
+      <td>${s.total}</td>
+      <td>${s.passFail}</td>
+      <td><button onclick="deleteStudent('${s._id}')">Delete</button></td>
+    `;
     tbody.appendChild(tr);
   });
 }
@@ -78,7 +92,9 @@ document.getElementById('searchForm')?.addEventListener('submit', async e => {
     document.getElementById('result').innerHTML = JSON.stringify(student, null, 2);
     document.getElementById('downloadBtn').style.display = 'block';
     document.getElementById('downloadBtn').onclick = () => downloadPDF(student);
-  } else alert('Not found');
+  } else {
+    alert('Not found');
+  }
 });
 
 // PDF Download
